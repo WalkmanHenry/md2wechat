@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MD2WeChat - Markdown转微信排版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #07C160 0%, #05a350 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .panel-header {
+            background: #fafafa;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .panel-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .panel-body {
+            padding: 16px;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 500px;
+            border: none;
+            outline: none;
+            resize: vertical;
+            font-family: "SF Mono", Monaco, monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+        }
+        
+        .preview-content {
+            min-height: 500px;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #333;
+        }
+        
+        .preview-content h1 {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 24px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+            color: #000;
+        }
+        
+        .preview-content h2 {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 12px;
+            color: #000;
+        }
+        
+        .preview-content h3 {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 16px 0 8px;
+            color: #000;
+        }
+        
+        .preview-content p {
+            margin: 12px 0;
+            text-align: justify;
+        }
+        
+        .preview-content strong {
+            font-weight: bold;
+            color: #000;
+        }
+        
+        .preview-content em {
+            font-style: italic;
+        }
+        
+        .preview-content code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #d73a49;
+        }
+        
+        .preview-content pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .preview-content pre code {
+            background: none;
+            padding: 0;
+            color: #24292e;
+        }
+        
+        .preview-content blockquote {
+            border-left: 4px solid #07C160;
+            margin: 16px 0;
+            padding: 8px 16px;
+            background: #f0f9f4;
+            color: #666;
+        }
+        
+        .preview-content ul, .preview-content ol {
+            margin: 12px 0;
+            padding-left: 24px;
+        }
+        
+        .preview-content li {
+            margin: 6px 0;
+        }
+        
+        .preview-content a {
+            color: #576b95;
+            text-decoration: none;
+        }
+        
+        .preview-content img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 12px 0;
+        }
+        
+        .preview-content hr {
+            border: none;
+            border-top: 1px solid #e8e8e8;
+            margin: 24px 0;
+        }
+        
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 6px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #07C160;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #06ad56;
+        }
+        
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        .theme-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .theme-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .theme-btn:hover, .theme-btn.active {
+            border-color: #333;
+            transform: scale(1.1);
+        }
+        
+        .theme-default { background: #fff; border: 1px solid #ddd; }
+        .theme-dark { background: #1a1a1a; }
+        .theme-green { background: #07C160; }
+        .theme-blue { background: #576b95; }
+        
+        .support-section {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            margin-top: 20px;
+            border-radius: 12px;
+        }
+        
+        .support-section h3 {
+            margin-bottom: 16px;
+            color: #333;
+        }
+        
+        .support-links {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .support-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.2s;
+        }
+        
+        .support-link:hover {
+            background: #e8e8e8;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📝 MD2WeChat</h1>
+        <p>Markdown 转微信排版 | 免费开源 | 纯前端运行</p>
+    </div>
+    
+    <div class="container">
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">Markdown 输入</span>
+                <div class="toolbar">
+                    <button class="btn btn-secondary" onclick="insertTemplate()">插入示例</button>
+                    <button class="btn btn-secondary" onclick="clearText()">清空</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <textarea id="markdown-input" placeholder="在此输入 Markdown 内容...
+
+支持：
+- 标题 (# ## ###)
+- 粗体 (**text**)
+- 斜体 (*text*)
+- 代码块 (```code```)
+- 引用 (> quote)
+- 列表 (- item)
+- 链接 ([text](url))
+- 表格 (| col1 | col2 |)
+- 分割线 (---)"></textarea>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="panel-header">
+                <span class="panel-title">微信预览</span>
+                <div class="toolbar">
+                    <div class="theme-selector">
+                        <div class="theme-btn theme-default active" onclick="setTheme('default')" title="默认"></div>
+                        <div class="theme-btn theme-dark" onclick="setTheme('dark')" title="深色"></div>
+                        <div class="theme-btn theme-green" onclick="setTheme('green')" title="绿色"></div>
+                        <div class="theme-btn theme-blue" onclick="setTheme('blue')" title="蓝色"></div>
+                    </div>
+                    <button class="btn btn-primary" onclick="copyHTML()">复制HTML</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div id="preview" class="preview-content"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="support-section" style="grid-column: 1 / -1;">
+            <h3>🙏 如果这个项目帮到了你</h3>
+            <p style="color: #666; margin-bottom: 16px;">你的支持是我持续开发的动力</p>
+            <div class="support-links">
+                <a href="https://github.com/sponsors/YOUR_USERNAME" target="_blank" class="support-link">
+                    <span>❤️</span> GitHub Sponsors
+                </a>
+                <a href="https://afdian.net/@YOUR_USERNAME" target="_blank" class="support-link">
+                    <span>⚡</span> 爱发电
+                </a>
+                <a href="https://github.com/YOUR_USERNAME/md2wechat" target="_blank" class="support-link">
+                    <span>⭐</span> GitHub Star
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const markdownInput = document.getElementById('markdown-input');
+        const preview = document.getElementById('preview');
+        
+        // Simple Markdown parser
+        function parseMarkdown(text) {
+            if (!text) return '';
+            
+            let html = text
+                // Escape HTML
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                // Code blocks
+                .replace(/```(\w+)?\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+                // Inline code
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                // Headers
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                // Bold
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/__(.*?)__/g, '<strong>$1</strong>')
+                // Italic
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/_(.*?)_/g, '<em>$1</em>')
+                // Strikethrough
+                .replace(/~~(.*?)~~/g, '<del>$1</del>')
+                // Blockquote
+                .replace(/^&gt; (.*$)/gim, '<blockquote>$1</blockquote>')
+                // Horizontal rule
+                .replace(/^---$/gim, '<hr>')
+                // Links
+                .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+                // Images
+                .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+                // Unordered list
+                .replace(/^- (.*$)/gim, '<li>$1</li>')
+                // Ordered list
+                .replace(/^\d+\. (.*$)/gim, '<li>$1</li>')
+                // Tables
+                .replace(/\|(.+)\|/g, (match, content) => {
+                    const cells = content.split('|').map(c => c.trim()).filter(c => c);
+                    return '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+                })
+                // Line breaks
+                .replace(/\n/g, '<br>');
+            
+            // Wrap lists
+            html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+            
+            return html;
+        }
+        
+        function updatePreview() {
+            const text = markdownInput.value;
+            preview.innerHTML = parseMarkdown(text);
+        }
+        
+        function insertTemplate() {
+            const template = `# 文章标题
+
+这是**粗体文字**，这是*斜体文字*。
+
+## 二级标题
+
+> 这是一段引用文字，可以用来强调重要观点。
+
+### 代码示例
+
+\`\`\`javascript
+function hello() {
+    console.log("Hello, World!");
+}
+\`\`\`
+
+### 列表演示
+
+- 第一点：支持有序和无序列表
+- 第二点：自动转换为微信兼容格式
+- 第三点：纯前端运行，无需服务器
+
+### 表格演示
+
+| 功能 | 支持 | 说明 |
+|------|------|------|
+| 标题 | ✅ | H1-H6 |
+| 代码 | ✅ | 行内和块级 |
+| 表格 | ✅ | 简单表格 |
+
+---
+
+**享受写作！**`;
+            markdownInput.value = template;
+            updatePreview();
+        }
+        
+        function clearText() {
+            markdownInput.value = '';
+            updatePreview();
+        }
+        
+        function copyHTML() {
+            const html = preview.innerHTML;
+            navigator.clipboard.writeText(html).then(() => {
+                alert('HTML已复制到剪贴板！直接粘贴到微信编辑器即可。');
+            });
+        }
+        
+        function setTheme(theme) {
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            const previewEl = document.getElementById('preview');
+            previewEl.className = 'preview-content';
+            
+            if (theme === 'dark') {
+                previewEl.style.background = '#1a1a1a';
+                previewEl.style.color = '#fff';
+                previewEl.style.padding = '20px';
+                previewEl.style.borderRadius = '8px';
+            } else if (theme === 'green') {
+                previewEl.style.background = '#f0f9f4';
+                previewEl.style.color = '#333';
+                previewEl.style.padding = '20px';
+                previewEl.style.borderRadius = '8px';
+            } else if (theme === 'blue') {
+                previewEl.style.background = '#f0f5ff';
+                previewEl.style.color = '#333';
+                previewEl.style.padding = '20px';
+                previewEl.style.borderRadius = '8px';
+            } else {
+                previewEl.style.background = '';
+                previewEl.style.color = '';
+                previewEl.style.padding = '';
+                previewEl.style.borderRadius = '';
+            }
+        }
+        
+        // Event listeners
+        markdownInput.addEventListener('input', updatePreview);
+        
+        // Initial render
+        insertTemplate();
+    </script>
+</body>
+</html>
