@@ -18,14 +18,14 @@
 
 ## 🔗 在线使用
 
-👉 [点击使用](https://YOUR_USERNAME.github.io/md2wechat)
+👉 [点击使用](https://WalkmanHenry.github.io/md2wechat)
 
 ## 💖 支持项目
 
 如果这个工具帮到了你，欢迎支持我继续开发：
 
-- [GitHub Sponsors](https://github.com/sponsors/YOUR_USERNAME) - 支持美元
-- [爱发电](https://afdian.net/@YOUR_USERNAME) - 支持人民币
+- [GitHub Sponsors](https://github.com/sponsors/WalkmanHenry) - 支持美元
+- [爱发电](https://afdian.net/@WalkmanHenry) - 支持人民币
 
 ## 📄 开源协议
 
@@ -33,4 +33,4 @@ MIT License
 
 ---
 
-Made with ❤️ by [YOUR_NAME](https://github.com/YOUR_USERNAME)
+Made with ❤️ by [WalkmanHenry](https://github.com/WalkmanHenry)
